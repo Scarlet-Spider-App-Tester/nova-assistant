@@ -1,0 +1,126 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NOVA | Personal Assistant</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at center, #102b45, #050914 70%);
+  color: #e8f7ff;
+  font-family: -apple-system, Arial, sans-serif;
+  display: grid;
+  place-items: center;
+}
+main { width: min(90%, 520px); text-align: center; padding: 30px 0; }
+h1 { letter-spacing: 12px; font-size: 42px; color: #75d9ff; }
+.subtitle { color: #8ba9bd; letter-spacing: 3px; font-size: 12px; }
+.orb {
+  width: 170px; height: 170px; margin: 35px auto;
+  border: 2px solid #55cfff; border-radius: 50%;
+  box-shadow: 0 0 25px #168bc9, inset 0 0 30px #168bc9;
+  display: grid; place-items: center;
+  animation: pulse 3s infinite ease-in-out;
+}
+.orb span { font-size: 58px; color: #9be7ff; }
+@keyframes pulse {
+  50% { box-shadow: 0 0 45px #168bc9, inset 0 0 45px #168bc9; }
+}
+#status { color: #78d9ff; min-height: 24px; }
+button {
+  background: #087eae; color: white; border: 1px solid #67d9ff;
+  border-radius: 30px; padding: 14px 25px; font-size: 15px;
+  cursor: pointer; margin: 8px;
+}
+button:hover { background: #0b9bd2; }
+input {
+  width: 68%; padding: 13px; border-radius: 20px;
+  border: 1px solid #367b9c; background: #081827;
+  color: white; outline: none;
+}
+#response {
+  margin-top: 25px; min-height: 55px; line-height: 1.6;
+  color: #d1eaf7; padding: 12px;
+}
+small { color: #68869a; }
+</style>
+</head>
+<body>
+<main>
+  <p class="subtitle">PERSONAL ASSISTANT SYSTEM</p>
+  <h1>NOVA</h1>
+  <div class="orb"><span>✦</span></div>
+  <p id="status">SYSTEM ONLINE · INTERFACE READY</p>
+  <button id="mic">🎙 Activate microphone</button>
+  <div>
+    <input id="message" placeholder="Talk to NOVA..." />
+    <button id="send">Send</button>
+  </div>
+  <div id="response">Hello! I'm NOVA. Ready when you are.</div>
+  <small>Prototype interface · AI connection not yet configured</small>
+</main>
+<script>
+const status = document.getElementById("status");
+const response = document.getElementById("response");
+const input = document.getElementById("message");
+
+function reply(message) {
+  response.textContent = "You said: " + message +
+    " — My AI brain hasn't been connected yet.";
+  if ("speechSynthesis" in window) {
+    speechSynthesis.cancel();
+    speechSynthesis.speak(new SpeechSynthesisUtterance(
+      "I heard you say: " + message + ". My AI brain is not connected yet."
+    ));
+  }
+}
+
+document.getElementById("send").onclick = () => {
+  if (input.value.trim()) {
+    reply(input.value.trim());
+    input.value = "";
+  }
+};
+
+input.addEventListener("keydown", event => {
+  if (event.key === "Enter") document.getElementById("send").click();
+});
+
+document.getElementById("mic").onclick = () => {
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    status.textContent =
+      "Speech recognition isn't supported here. Try typing instead.";
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+  recognition.lang = "en-AU";
+  recognition.interimResults = false;
+
+  recognition.onstart = () => status.textContent = "LISTENING...";
+  recognition.onresult = event => {
+    const words = event.results[0][0].transcript;
+    input.value = words;
+    reply(words);
+    status.textContent = "VOICE CAPTURE COMPLETE";
+  };
+  recognition.onerror = event => {
+    status.textContent = "Microphone issue: " + event.error;
+  };
+  recognition.onend = () => {
+    if (status.textContent === "LISTENING...")
+      status.textContent = "SYSTEM ONLINE";
+  };
+
+  recognition.start();
+};
+</script>
+</body>
+</html>
