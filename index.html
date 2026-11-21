@@ -68,16 +68,44 @@ const status = document.getElementById("status");
 const response = document.getElementById("response");
 const input = document.getElementById("message");
 
-function reply(message) {
-  response.textContent = "You said: " + message +
-    " — My AI brain hasn't been connected yet.";
-  if ("speechSynthesis" in window) {
-    speechSynthesis.cancel();
-    speechSynthesis.speak(new SpeechSynthesisUtterance(
-      "I heard you say: " + message + ". My AI brain is not connected yet."
-    ));
+
+async function reply(message) {
+  response.textContent = "NOVA is thinking...";
+
+  try {
+    const result = await fetch(
+      "https://nova-gpt-brain.jane-appleseed244.workers.dev",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ message: message })
+      }
+    );
+
+    const data = await result.json();
+
+    if (!result.ok) {
+      throw new Error(data.error || "GPT connection failed");
+    }
+
+    const answer = data.reply;
+    response.textContent = answer;
+
+    if ("speechSynthesis" in window) {
+      speechSynthesis.cancel();
+      speechSynthesis.speak(
+        new SpeechSynthesisUtterance(answer)
+      );
+    }
+
+  } catch (error) {
+    response.textContent =
+      "NOVA connection error: " + error.message;
   }
 }
+
 
 document.getElementById("send").onclick = () => {
   if (input.value.trim()) {
