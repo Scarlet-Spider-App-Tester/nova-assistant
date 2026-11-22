@@ -67,7 +67,24 @@ small { color: #68869a; }
 const status = document.getElementById("status");
 const response = document.getElementById("response");
 const input = document.getElementById("message");
+// NOVA MEMORY SYSTEM
+function loadMemories() {
+  return JSON.parse(localStorage.getItem("nova_memories") || "[]");
+}
 
+function saveMemory(fact) {
+  const memories = loadMemories();
+  memories.push(fact);
+  localStorage.setItem("nova_memories", JSON.stringify(memories));
+}
+
+function getMemoryContext() {
+  const memories = loadMemories();
+  if (memories.length === 0) return "";
+
+  return "Things you remember about the user:\n" +
+    memories.map(m => "- " + m).join("\n");
+}
 
 async function reply(message) {
   response.textContent = "NOVA is thinking...";
@@ -80,7 +97,10 @@ async function reply(message) {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ message: message })
+body: JSON.stringify({
+  message: message,
+  memory: getMemoryContext()
+})
       }
     );
 
